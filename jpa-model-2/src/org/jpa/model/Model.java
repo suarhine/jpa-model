@@ -724,21 +724,17 @@ public class Model<E> {
 				throws NullPointerException,
 				InvocationTargetException,
 				NoSuchMethodException {
-			return new Invocable<>(clazz).found(c -> true, parameters -> {
-				Object[] arguments = new Object[parameters.length];
-				for (int i = 0; i < parameters.length; i++) {
-					Class<?> type = parameters[i].getType();
-					if (type == Class.class) {
-						arguments[i] = clazz;
-					} else if (type == Factory.class) {
-						arguments[i] = Factory.this;
-					} else if (type == EntityManagerFactory.class) {
-						arguments[i] = factory(f -> f);
-					} else if (type == String.class) {
-						arguments[i] = alias;
-					}
-				}
-				return arguments;
+			return new Invocable<>(clazz).found(c -> true, (i, p) -> {
+				Class<?> type = p.getType();
+				if (type == Class.class)
+					return clazz;
+				else if (type == Factory.class)
+					return Factory.this;
+				else if (type == EntityManagerFactory.class)
+					return factory(f -> f);
+				else if (type == String.class)
+					return alias;
+				else return null;
 			});
 		}
 
