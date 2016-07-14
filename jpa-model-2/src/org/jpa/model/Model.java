@@ -110,7 +110,7 @@ public class Model<E> {
 		 * @author เสือไฮ่
 		 */
 		@FunctionalInterface
-		protected interface Statement {
+		public interface Statement {
 			/**
 			 * Interface <code>Model.Factory.Statement.Junction</code>
 			 * สำหรับแยกวิธีในการสร้างคำสั่ง JPQL ระหว่างแบบตั้งชื่อ Parameter
@@ -1390,8 +1390,8 @@ public class Model<E> {
 						factory.getCache().evict(model.clazz);
 					} else {
 						for (Object i : id) {
-							factory.getCache().evict(
-									model.clazz, id(model.clazz, i));
+							factory.getCache()
+									.evict(model.clazz, id(model.clazz, i));
 						}
 					}
 					return true;
@@ -2240,9 +2240,8 @@ public class Model<E> {
 	 *
 	 * @author เสือไฮ่
 	 */
-	public static class Aggregate
-		implements Factory.Selector<Object[], Map<String, Object>>,
-		Factory.Statement {
+	public static class Aggregate implements Model.Factory.Statement,
+		Model.Factory.Selector<Object[], Map<String, Object>> {
 		/**
 		 * Field สำหรับ สร้าง Expression "GROUP BY"
 		 */
@@ -2318,7 +2317,7 @@ public class Model<E> {
 			for (int i = 0; i < fields.length; i++) {
 				map.put(fields[i], result[i]);
 			}
-			String[] keys = with.keySet().toArray(new String[with.size()]);
+			String[] keys = Cast.$.array(String.class, with.keySet());
 			for (int i = 0; i < keys.length; i++) {
 				map.put(keys[i], result[i + fields.length]);
 			}
