@@ -417,10 +417,7 @@ public class Model<E> {
 					StringBuilder statement,
 					Map<String, Object> params)
 					throws IllegalArgumentException {
-				if (field.indexOf(model.as + ".") < 0) {
-					statement.append(model.as).append('.');
-				}
-				statement.append(field);
+				statement.append(model.ialias(field));
 				if (value == null) {
 					if (condition.equals("=")) {
 						statement.append(" IS NULL");
@@ -452,10 +449,7 @@ public class Model<E> {
 			public void build(Model<?> model,
 					StringBuilder statement,
 					List<Object> params) {
-				if (field.indexOf(model.as + ".") < 0) {
-					statement.append(model.as).append('.');
-				}
-				statement.append(field);
+				statement.append(model.ialias(field));
 				if (value == null) {
 					if (condition.equals("=")) {
 						statement.append(" IS NULL");
@@ -812,8 +806,8 @@ public class Model<E> {
 		protected boolean hasAlias(Model<?> model, String keyword) {
 			try {
 				return keyword.equals(model.as)
-						|| keyword.indexOf(model.as + ".") >= 0
-						|| Pattern.compile("\\( *" + model.as + " *\\)")
+						|| keyword.indexOf(model.as + ".") == 0
+						|| Pattern.compile("\\( *" + model.as + " *\\)|\\We\\.")
 								.matcher(keyword).find();
 			} catch (Throwable e) {
 				return false;
@@ -1520,15 +1514,11 @@ public class Model<E> {
 					manager.getTransaction().begin();
 					return function.apply(manager);
 				} finally {
-					try {
-						if (!manager.getTransaction().getRollbackOnly()) {
+					if (manager.getTransaction().isActive()) {
+						if (manager.getTransaction().getRollbackOnly()) {
+							manager.getTransaction().rollback();
+						} else {
 							manager.getTransaction().commit();
-						}
-					} finally {
-						if (manager.getTransaction().isActive()) {
-							try {
-								manager.getTransaction().rollback();
-							} catch (Throwable e) {}
 						}
 					}
 				}
@@ -2297,16 +2287,10 @@ public class Model<E> {
 		public CharSequence selector(Model<?> model) {
 			StringBuilder builder = new StringBuilder();
 			for (String field : fields) {
-				if (!model.hasAlias(field)) {
-					builder.append(model.as).append('.');
-				}
-				builder.append(field).append(", ");
+				builder.append(model.ialias(field)).append(", ");
 			}
 			for (String value : with.values()) {
-				if (!model.hasAlias(value)) {
-					builder.append(model.as).append('.');
-				}
-				builder.append(value).append(", ");
+				builder.append(model.ialias(value)).append(", ");
 			}
 			return builder.delete(builder.length() - 2, builder.length());
 		}
@@ -2613,10 +2597,7 @@ public class Model<E> {
 		return (model, statement, named, index) -> {
 			statement.append(" GROUP BY ");
 			for (String field : fields) {
-				if (!model.hasAlias(field)) {
-					statement.append(model.as).append('.');
-				}
-				statement.append(field).append(", ");
+				statement.append(model.ialias(field)).append(", ");
 			}
 			statement.delete(statement.length() - 2, statement.length());
 		};
@@ -2738,10 +2719,7 @@ public class Model<E> {
 		return (model, statement, named, index) -> {
 			statement.append(" ORDER BY ");
 			for (String field : fields) {
-				if (!model.hasAlias(field)) {
-					statement.append(model.as).append('.');
-				}
-				statement.append(field).append(", ");
+				statement.append(model.ialias(field)).append(", ");
 			}
 			statement.delete(statement.length() - 2, statement.length());
 		};
@@ -2973,14 +2951,17 @@ public class Model<E> {
 
 	/**
 	 * ตรวจสอบว่าใน Keyword สำหรับการอ้าง Field ใน Entity Class มีตัวแปร Alias
-	 * Name อยู่แล้วหรือไม่
+	 * Name อยู่แล้วหรือไม่ หากไม่มี จะ Return ค่าที่เติม Alias Name
+	 * ให้เลยโดยอัตโนมัติ
 	 *
 	 * @param keyword
 	 *            Keyword ที่ต้องการตรวจสอบ
-	 * @return true หากใน <code>keyword</code> มี Alias Name อยู่แล้ว
+	 * @return ค่า Keyword ที่มี Alias Name เป็นส่วนประกอบอยู่แล้ว
 	 */
-	protected boolean hasAlias(String keyword) {
-		return factory.hasAlias(this, keyword);
+	public CharSequence ialias(String keyword) {
+		return factory.hasAlias(this, keyword)
+				? new StringBuilder(as).append('.').append(keyword)
+				: keyword;
 	}
 
 	/**
