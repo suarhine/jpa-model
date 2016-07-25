@@ -2486,7 +2486,7 @@ public class Model<E> {
 			if (params != null && params.length > 0
 					&& params[0] instanceof Map) {
 				Map<String, Object> init = Cast.$(params[0]);
-				this.values = init(values, as + '.', init);
+				this.values = init(values, init);
 				if (criteria == null) {
 					this.criteria = null;
 					this.params = params;
@@ -2500,17 +2500,17 @@ public class Model<E> {
 				}
 			} else if (criteria == null) {
 				ArrayList<Object> init = new ArrayList<>();
-				this.values = init(values, as + '.', init);
+				this.values = init(values, init);
 				this.criteria = null;
 				this.params = new Object[] { init };
 				return;
 			} else if (criteria.isNaming()) {
 				HashMap<String, Object> init = new HashMap<>();
-				this.values = init(values, as + '.', init);
+				this.values = init(values, init);
 				builder = new CriteriaBuilder(criteria, init, params);
 			} else {
 				ArrayList<Object> init = new ArrayList<>();
-				this.values = init(values, as + '.', init);
+				this.values = init(values, init);
 				builder = new CriteriaBuilder(criteria, init, params);
 			}
 			this.criteria = builder.criteria;
@@ -2522,23 +2522,17 @@ public class Model<E> {
 		 *
 		 * @param series
 		 *            value ทั้งหมด
-		 * @param prefix
-		 *            คำนำหน้า Field
 		 * @param params
 		 *            ค่าที่จะกำหนดใน Field
 		 * @return คำสั่งกำหนดค่า
 		 */
 		protected CharSequence init(
-				Pair.Series series, String prefix, Map<String, Object> params) {
+				Pair.Series series, Map<String, Object> params) {
 			StringBuilder builder = new StringBuilder();
 			for (Pair i : series) {
 				params.put(i.field.replace('.', '_'), i.value);
-				builder.append(", ");
-				if (i.field.indexOf(prefix) < 0) {
-					builder.append(prefix);
-				}
-				builder.append(i.field).append(" = :")
-						.append(i.field.replace('.', '_'));
+				builder.append(", ").append(ialias(i.field))
+						.append(" = :").append(i.field.replace('.', '_'));
 			}
 			return builder.delete(0, 2);
 		}
@@ -2548,23 +2542,16 @@ public class Model<E> {
 		 *
 		 * @param series
 		 *            value ทั้งหมด
-		 * @param prefix
-		 *            คำนำหน้า Field
 		 * @param params
 		 *            ค่าที่จะกำหนดใน Field
 		 * @return คำสั่งกำหนดค่า
 		 */
-		protected CharSequence init(
-				Pair.Series series, String prefix, List<Object> params) {
+		protected CharSequence init(Pair.Series series, List<Object> params) {
 			StringBuilder builder = (StringBuilder) values;
 			for (Pair i : series) {
 				params.add(i.value);
-				builder.append(", ");
-				if (i.field.indexOf(prefix) < 0) {
-					builder.append(prefix);
-				}
-				builder.append(i.field).append(" = ?")
-						.append(params.size());
+				builder.append(", ").append(ialias(i.field))
+						.append(" = ?").append(params.size());
 			}
 			return builder.delete(0, 2);
 		}
