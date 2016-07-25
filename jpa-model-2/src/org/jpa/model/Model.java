@@ -805,10 +805,13 @@ public class Model<E> {
 		 */
 		protected boolean hasAlias(Model<?> model, String keyword) {
 			try {
-				return keyword.equals(model.as)
-						|| keyword.indexOf(model.as + ".") == 0
-						|| Pattern.compile("\\( *" + model.as + " *\\)|\\We\\.")
-								.matcher(keyword).find();
+				StringBuilder builder = new StringBuilder()
+						.append("^ *").append(model.as).append(" *$")
+						.append("|^ *").append(model.as).append("\\.")
+						.append("|\\W").append(model.as).append("\\.")
+						.append("|\\( *").append(model.as).append(" *\\)");
+				return Pattern.compile(builder.toString())
+						.matcher(keyword).find();
 			} catch (Throwable e) {
 				return false;
 			}
@@ -2946,9 +2949,8 @@ public class Model<E> {
 	 * @return ค่า Keyword ที่มี Alias Name เป็นส่วนประกอบอยู่แล้ว
 	 */
 	public CharSequence ialias(String keyword) {
-		return factory.hasAlias(this, keyword)
-				? new StringBuilder(as).append('.').append(keyword)
-				: keyword;
+		return factory.hasAlias(this, keyword) ? keyword
+				: new StringBuilder(as).append('.').append(keyword);
 	}
 
 	/**
