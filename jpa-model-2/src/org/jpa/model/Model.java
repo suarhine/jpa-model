@@ -400,11 +400,41 @@ public class Model<E> {
 					String field, String condition, Object value, String name)
 					throws NullPointerException {
 				super(field, value);
-				this.condition = condition == null
-						|| (condition = condition.trim()).isEmpty()
-								? "=" : condition;
-				this.name = name == null || (name = name.trim()).isEmpty()
-						? null : name;
+				if (value == Void.class || value == void.class) {
+					this.condition = this.name = null;
+				} else {
+					this.condition = condition == null
+							|| (condition = condition.trim()).isEmpty()
+									? "=" : condition;
+					this.name = name == null || (name = name.trim()).isEmpty()
+							? null : name;
+				}
+			}
+
+			/**
+			 * เพิ่ม {@link Pair#value value} ลงใน Parameter (แบบ Naming)
+			 * 
+			 * @param params
+			 *            Parameter ที่ต้องการเพิ่ม {@link Pair#value value}
+			 *            ลงไป
+			 * @param name
+			 *            ชื่อ Parameter ของ {@link Pair#value value}
+			 * @throws IllegalArgumentException
+			 *             ชื่อ Parameter ซ้ำกับชื่อ Parameter ตัวอื่น
+			 */
+			private void iput(Map<String, Object> params, String name)
+					throws IllegalArgumentException {
+				if (value == null) {
+					if (!params.containsKey(name)) {
+						params.put(name, null);
+					}
+				} else {
+					Object release = params.put(name, value);
+					if (release != null && !release.equals(value)) {
+						throw new IllegalArgumentException(
+								"Parameter \"" + name + "\" was conflict");
+					}
+				}
 			}
 
 			@Override
@@ -417,6 +447,16 @@ public class Model<E> {
 					StringBuilder statement,
 					Map<String, Object> params)
 					throws IllegalArgumentException {
+				Pattern pattern = Pattern.compile(":\\w+");
+				Matcher matcher;
+				if ((matcher = pattern.matcher(field)).find()) {
+					statement.append(model.ialias(field));
+					iput(params, matcher.group().substring(1));
+				} else if ((matcher = pattern.matcher(condition)).find()) {
+					statement.append(model.ialias(field)).append(' ')
+							.append(condition);
+					iput(params, matcher.group().substring(1));
+				}
 				statement.append(model.ialias(field));
 				if (value == null) {
 					if (condition.equals("=")) {
@@ -431,15 +471,8 @@ public class Model<E> {
 					((Factory.Statement) value).build(model, statement, params);
 					statement.append(')');
 				} else {
-					String name = this.name == null
-							? field.replace('.', '_') : this.name;
-					if (params.containsKey(name)) {
-						if (!value.equals(params.get(name)))
-							throw new IllegalArgumentException(
-									"Parameter \"" + name + "\" was conflict");
-					} else {
-						params.put(name, value);
-					}
+					iput(params, this.name == null
+							? field.replace('.', '_') : this.name);
 					statement.append(' ').append(condition)
 							.append(" :").append(name);
 				}
@@ -449,23 +482,37 @@ public class Model<E> {
 			public void build(Model<?> model,
 					StringBuilder statement,
 					List<Object> params) {
-				statement.append(model.ialias(field));
-				if (value == null) {
-					if (condition.equals("=")) {
-						statement.append(" IS NULL");
-					} else if (condition.equals("!=")) {
-						statement.append(" IS NOT NULL");
-					} else {
-						statement.append(' ').append(condition).append(" NULL");
-					}
-				} else if (value instanceof Factory.Statement) {
-					statement.append(' ').append(condition).append(" (");
-					((Factory.Statement) value).build(model, statement, params);
-					statement.append(')');
-				} else {
+				if (field.indexOf('?') >= 0) {
 					params.add(value);
-					statement.append(' ').append(condition)
-							.append(" ?").append(params.size());
+					statement.append(model.ialias(field).toString()
+							.replace("?", "?" + params.size()));
+				} else if (value == Void.class || value == void.class) {
+					statement.append(model.ialias(field));
+				} else if (condition.indexOf('?') >= 0) {
+					params.add(value);
+					statement.append(model.ialias(field)).append(' ').append(
+							condition.replace("?", "?" + params.size()));
+				} else {
+					statement.append(model.ialias(field));
+					if (value == null) {
+						if (condition.equals("=")) {
+							statement.append(" IS NULL");
+						} else if (condition.equals("!=")) {
+							statement.append(" IS NOT NULL");
+						} else {
+							statement.append(' ')
+									.append(condition).append(" NULL");
+						}
+					} else if (value instanceof Factory.Statement) {
+						statement.append(' ').append(condition).append(" (");
+						((Factory.Statement) value)
+								.build(model, statement, params);
+						statement.append(')');
+					} else {
+						params.add(value);
+						statement.append(' ').append(condition)
+								.append(" ?").append(params.size());
+					}
 				}
 			}
 		}
@@ -508,7 +555,8 @@ public class Model<E> {
 			 */
 			protected void append(CharSequence conjunct, Criteria criteria)
 					throws NullPointerException {
-				if (criteria == null) throw new NullPointerException();
+				if (criteria == null)
+					throw new NullPointerException();
 				else if (this.criteria.isEmpty()) {
 					this.criteria.add(criteria);
 				} else if (conjunct.length() == 0)
