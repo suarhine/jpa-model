@@ -2798,6 +2798,105 @@ public class Model<E> {
 	}
 
 	/**
+	 * สร้างคำสั่ง Sub Query Statement
+	 * 
+	 * @param statement
+	 *            คำสั่ง Sub Query Statement
+	 * @param params
+	 *            Parameter ในคำสั่ง Sub Query Statement
+	 * @return คำสั่ง Sub Query
+	 */
+	public static Factory.Statement sub(
+			CharSequence statement, Object... params) {
+		return (model, builder, named, index) -> {
+			if (params == null || params.length == 0) {
+				builder.append(statement);
+			} else if (named != null) {
+				if (params.length == 1 && params[0] instanceof Map) {
+					named.putAll(Cast.$(params[0]));
+				} else {
+					throw new IllegalArgumentException();
+				}
+				builder.append(statement);
+			} else if (index != null) {
+				Matcher matcher = Pattern.compile("\\?\\d*").matcher(statement);
+				StringBuffer buffer = new StringBuffer();
+				try {
+					Iterator<Object> i = Arrays.asList(params).iterator();
+					while (matcher.find()) {
+						index.add(i.next());
+						matcher.appendReplacement(buffer, "?" + index.size());
+					}
+					if (i.hasNext()) {
+						throw new IllegalArgumentException();
+					}
+				} catch (NoSuchElementException e) {
+					throw new IllegalArgumentException();
+				}
+				builder.append(matcher.appendTail(buffer));
+			}
+		};
+	}
+
+	/**
+	 * สร้างคำสั่ง SQL สำหรับใส่ลงใน JPQL
+	 *
+	 * @param statement
+	 *            คำสั่ง SQL
+	 * @param params
+	 *            Parameter ในคำสั่ง SQL
+	 * @return ตัวกำหนดการจำกัดจำนวนผลลัพธ์
+	 */
+	public static Factory.Statement sql(
+			CharSequence statement, Object... params) {
+		return (model, builder, named, index) -> {
+			builder.append("SQL('").append(statement).append('\'');
+			if (params != null && params.length > 0) {
+				if (named != null) {
+					if (params.length == 1 && params[0] instanceof Map) {
+						for (Map.Entry<?, ?> entry : ((Map<?, ?>) params[0])
+								.entrySet()) {
+							Object val = entry.getValue();
+							if (val instanceof Factory.Statement) {
+								((Factory.Statement) val)
+										.build(model, builder, named, index);
+							} else {
+								String name = entry.getKey() == null ? null
+										: entry.getKey().toString();
+								builder.append(", :").append(name);
+								if (val != null || !named.containsKey(name)) {
+									Object release = named.put(name, val);
+									if (release != null
+											&& !release.equals(val)) {
+										throw new IllegalArgumentException(
+												"Parameter \"" + name
+														+ "\" was conflict");
+									}
+								}
+							}
+						}
+					}
+				} else if (index != null) {
+					int stamp = builder.length();
+					for (Object param : params) {
+						if (param instanceof Factory.Statement) {
+							((Model.Factory.Statement) param).build(
+									model, builder.append(", "), named, index);
+						} else if (param == null) {
+							builder.append(", NULL");
+						} else {
+							index.add(param);
+							builder.append(", ?").append(index.size());
+						}
+					}
+					builder.delete(stamp, stamp + 2);
+				}
+			}
+			builder.append(")");
+		};
+	}
+
+	/**
 	 * Core ในการเชื่อมต่อฐานข้อมูลของ {@link Model}
 	 */
 	public final Factory factory;
