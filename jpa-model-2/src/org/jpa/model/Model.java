@@ -36,14 +36,14 @@ import org.reflect.invoke.util.*;
  * 	SomeEntity find = {@link #find(Object) model.find(...)};
  * // หรือ
  * 	List{@code<}SomeEntity{@code>} finds = {@link #finds(Criteria, Object...) model.finds(...)};
- * 4. แก้ไขข้อมูล
+ * 4. ปรับปรุงข้อมูล
  * 	find.setSomeValue(...);
- * 	{@link #edit(Object...) model.edit(find)};
+ * 	{@link #put(Object...) model.put(find)};
  *  // หรือ
  * 	for(SomeEntity find : finds){
  * 		find.setSomeValue(...);
  * 	}
- * 	{@link #edit(Iterable) model.edit(finds)};
+ * 	{@link #put(Iterable) model.put(finds)};
  * 5. ลบข้อมูล
  * 	{@link #del(Object...) model.del(find)};
  *  // หรือ
@@ -1014,19 +1014,19 @@ public class Model<E> {
 		}
 
 		/**
-		 * แก้ไขข้อมูลในฐานข้อมูล
+		 * ปรับปรุงข้อมูลในฐานข้อมูล
 		 *
 		 * @param model
 		 *            {@link Model} ของข้อมูล
 		 * @param entities
-		 *            ข้อมูลที่ต้องการให้แก้ไขในฐาน
-		 * @return true หากแก้ไขข้อมูลในฐานได้สำเร็จ
+		 *            ข้อมูลที่ต้องการให้ปรับปรุงในฐาน
+		 * @return true หากปรับปรุงข้อมูลในฐานได้สำเร็จ
 		 * @throws NullPointerException
 		 *             <code>model</code> เป็น null
 		 * @see #transaction(Function)
 		 * @see EntityManager#merge(Object)
 		 */
-		protected <E> boolean edit(Model<E> model, Iterable<E> entities)
+		protected <E> boolean put(Model<E> model, Iterable<E> entities)
 				throws NullPointerException {
 			ArrayList<E[]> merged = new ArrayList<>();
 			try {
@@ -1047,14 +1047,14 @@ public class Model<E> {
 		}
 
 		/**
-		 * แก้ไขข้อมูลในฐานข้อมูลโดยการกำหนดค่าและระบุเงื่อนไขของข้อมูลที่ต้องการ
+		 * ปรับปรุงข้อมูลในฐานข้อมูลโดยการกำหนดค่าและระบุเงื่อนไขของข้อมูลที่ต้องการ
 		 *
 		 * @param model
 		 *            {@link Model} ของข้อมูล
 		 * @param values
-		 *            ค่าที่ต้องกำหนดให้กับข้อมูลที่จะแก้ไข
+		 *            ค่าที่ต้องกำหนดให้กับข้อมูลที่จะปรับปรุง
 		 * @param criteria
-		 *            เงื่อนใขในการระบุข้อมูลที่ต้องการแก้ไข
+		 *            เงื่อนใขในการระบุข้อมูลที่ต้องการปรับปรุง
 		 * @param params
 		 *            Parameter ใน <code>values</code> และ <code>criteria</code>
 		 *            (รวมกันโดยที่ Parameter ใน <code>value</code> ขึ้นก่อน
@@ -1062,13 +1062,13 @@ public class Model<E> {
 		 * @return จำนวนข้อมูลที่ถูกแก้ใขให้มีผลตาม<code>value</code>ที่ระบุ
 		 *         <br />
 		 *         (ไม่ว่าจะเปลี่ยนแปลค่าหรือค่าเหมือนเดิมก็ตาม,
-		 *         หากไม่สามารถแก้ไขข้อมูลได้ จะ return -1)
+		 *         หากไม่สามารถปรับปรุงข้อมูลได้ จะ return -1)
 		 * @throws NullPointerException
 		 *             <code>model</code> เป็น null
 		 * @see #jpql(Function, CharSequence, Object...)
 		 * @see Query#executeUpdate()
 		 */
-		protected <E> int edit(Model<E> model,
+		protected <E> int put(Model<E> model,
 				CharSequence values,
 				CharSequence criteria,
 				Object... params) throws NullPointerException {
@@ -3127,73 +3127,73 @@ public class Model<E> {
 	}
 
 	/**
-	 * แก้ไขข้อมูลในฐานข้อมูล
+	 * ปรับปรุงข้อมูลในฐานข้อมูล
 	 *
 	 * @param entities
-	 *            ข้อมูลที่ต้องการให้แก้ไขในฐาน
-	 * @return true หากแก้ไขข้อมูลในฐานได้สำเร็จ
+	 *            ข้อมูลที่ต้องการให้ปรับปรุงในฐาน
+	 * @return true หากปรับปรุงข้อมูลในฐานได้สำเร็จ
 	 * @see Factory#transaction(Function)
 	 * @see EntityManager#merge(Object)
 	 */
-	public boolean edit(@SuppressWarnings("unchecked") E... entities) {
-		return factory.edit(this, Arrays.asList(entities));
+	public boolean put(@SuppressWarnings("unchecked") E... entities) {
+		return factory.put(this, Arrays.asList(entities));
 	}
 
 	/**
-	 * แก้ไขข้อมูลในฐานข้อมูล
+	 * ปรับปรุงข้อมูลในฐานข้อมูล
 	 *
 	 * @param entities
-	 *            ข้อมูลที่ต้องการให้แก้ไขในฐาน
-	 * @return true หากแก้ไขข้อมูลในฐานได้สำเร็จ
+	 *            ข้อมูลที่ต้องการให้ปรับปรุงในฐาน
+	 * @return true หากปรับปรุงข้อมูลในฐานได้สำเร็จ
 	 * @see Factory#transaction(Function)
 	 * @see EntityManager#merge(Object)
 	 */
-	public boolean edit(Iterable<E> entities) {
-		return factory.edit(this, entities);
+	public boolean put(Iterable<E> entities) {
+		return factory.put(this, entities);
 	}
 
 	/**
-	 * แก้ไขข้อมูลในฐานข้อมูล
-	 * โดยการกำหนดค่าและระบุเงื่อนไขของข้อมูลที่ต้องการแก้ไข
+	 * ปรับปรุงข้อมูลในฐานข้อมูล
+	 * โดยการกำหนดค่าและระบุเงื่อนไขของข้อมูลที่ต้องการปรับปรุง
 	 *
 	 * @param values
-	 *            ค่าที่ต้องแก้ไขให้กับข้อมูล
+	 *            ค่าที่ต้องปรับปรุงให้กับข้อมูล
 	 * @param criteria
-	 *            เงื่อนใขในการระบุข้อมูลที่ต้องการแก้ไข
+	 *            เงื่อนใขในการระบุข้อมูลที่ต้องการปรับปรุง
 	 * @param params
 	 *            Parameter ในคำสั่ง <code>values</code> และ
 	 *            <code>criteria</code> (รวมกัน)
 	 * @return จำนวนข้อมูลที่ถูกแก้ใขฝให้มีผลตาม<code>value</code>ที่ระบุ<br />
-	 *         (หากไม่สามารถแก้ไขข้อมูลได้ จะ return -1)
+	 *         (หากไม่สามารถปรับปรุงข้อมูลได้ จะ return -1)
 	 * @see Factory#jpql(Function, CharSequence, Object...)
 	 * @see Query#executeUpdate()
 	 */
-	public int edit(
+	public int put(
 			CharSequence values, CharSequence criteria, Object... params) {
-		return factory.edit(this, values, criteria, params);
+		return factory.put(this, values, criteria, params);
 	}
 
 	/**
-	 * แก้ไขข้อมูลในฐานข้อมูล
-	 * โดยการกำหนดค่าและระบุเงื่อนไขของข้อมูลที่ต้องการแก้ไข
+	 * ปรับปรุงข้อมูลในฐานข้อมูล
+	 * โดยการกำหนดค่าและระบุเงื่อนไขของข้อมูลที่ต้องการปรับปรุง
 	 *
 	 * @param values
-	 *            ค่าที่ต้องแก้ไขให้กับข้อมูล
+	 *            ค่าที่ต้องปรับปรุงให้กับข้อมูล
 	 * @param criteria
-	 *            เงื่อนใขในการระบุข้อมูลที่ต้องการแก้ไข
+	 *            เงื่อนใขในการระบุข้อมูลที่ต้องการปรับปรุง
 	 * @param params
 	 *            Parameter อื่นๆนอกเหนือจาก <code>values</code> และ
 	 *            <code>criteria</code>
 	 * @return จำนวนข้อมูลที่ถูกแก้ใขฝให้มีผลตาม<code>value</code>ที่ระบุ<br />
-	 *         (หากไม่สามารถแก้ไขข้อมูลได้ จะ return -1)
-	 * @see #edit(CharSequence, CharSequence, Object...)
+	 *         (หากไม่สามารถปรับปรุงข้อมูลได้ จะ return -1)
+	 * @see #put(CharSequence, CharSequence, Object...)
 	 * @see ValueBuilder
 	 */
-	public int edit(
+	public int put(
 			Pair.Series values, Factory.Criteria criteria, Object... params) {
 		try {
 			ValueBuilder builder = new ValueBuilder(values, criteria, params);
-			return factory.edit(
+			return factory.put(
 					this, builder.values, builder.criteria, builder.params);
 		} catch (Throwable e) {
 			caught(e);
