@@ -403,9 +403,16 @@ public class Model<E> {
 				if (value == Void.class || value == void.class) {
 					this.condition = this.name = null;
 				} else {
-					this.condition = condition == null
-							|| (condition = condition.trim()).isEmpty()
-									? "=" : condition;
+					if (condition == null || condition.isEmpty()) {
+						if (value instanceof String
+								&& ((String) value).matches("%.+|.+%")) {
+							this.condition = "LIKE";
+						} else {
+							this.condition = "=";
+						}
+					} else {
+						this.condition = condition;
+					}
 					this.name = name == null || (name = name.trim()).isEmpty()
 							? null : name;
 				}
