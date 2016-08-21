@@ -3591,7 +3591,7 @@ public class Model<E> {
 	}
 
 	/**
-	 * นับจำนวนในฐานข้อมูลตามเงื่อนไขที่ระบุ
+	 * นับจำนวนข้อมูลในฐานข้อมูลตามเงื่อนไขที่ระบุ
 	 *
 	 * @param criteria
 	 *            เงื่อนไขในการระบุข้อมูลที่ต้องการนับ
@@ -3607,7 +3607,7 @@ public class Model<E> {
 	 * @see Factory#build(Model, StringBuilder, Object...)
 	 * @see TypedQuery#getSingleResult()
 	 */
-	public Long count(CharSequence criteria, Object... params)
+	public long count(CharSequence criteria, Object... params)
 			throws IllegalArgumentException, UnsupportedOperationException {
 		return factory.find(this, (Factory.Selector.That<Long>) model -> {
 			return "COUNT(" + model.as + ")";
@@ -3615,7 +3615,7 @@ public class Model<E> {
 	}
 
 	/**
-	 * นับจำนวนในฐานข้อมูลตามเงื่อนไขที่ระบุ
+	 * นับจำนวนข้อมูลในฐานข้อมูลตามเงื่อนไขที่ระบุ
 	 *
 	 * @param criteria
 	 *            เงื่อนไขในการระบุข้อมูลที่ต้องการนับ
@@ -3638,7 +3638,7 @@ public class Model<E> {
 	}
 
 	/**
-	 * นับจำนวนในฐานข้อมูลที่มีค่า ณ Field ที่กำหนด ตรงกับค่าที่ระบบุ
+	 * นับจำนวนข้อมูลในฐานข้อมูลที่มีค่า ณ Field ที่กำหนด ตรงกับค่าที่ระบบุ
 	 *
 	 * @param field
 	 *            Field ที่กำหนดว่าจะเปรียบเทียบ
@@ -3666,7 +3666,19 @@ public class Model<E> {
 	}
 
 	/**
-	 * นับจำนวนในฐานข้อมูลตามเงื่อนไขที่ระบุ
+	 * นับจำนวนข้อมูลทั้งหมดในฐานข้อมูล
+	 *
+	 * @return จำนวนข้อมูลทั้งหมด
+	 * @throws UnsupportedOperationException
+	 *             ไม่สามารถเชื่อมต่อฐานข้อมูลได้
+	 * @see #count(CharSequence, Object...)
+	 */
+	public long count() throws UnsupportedOperationException {
+		return count((CharSequence) null);
+	}
+
+	/**
+	 * นับจำนวนข้อมูลในฐานข้อมูลตามเงื่อนไขที่ระบุ
 	 * โดยแบ่งจำนวนข้อมูลที่นับได้ออกเป็นกลุ่มๆ
 	 *
 	 * @param fields
@@ -3677,8 +3689,8 @@ public class Model<E> {
 	 *            Parameter ใน <code>criteria</code>
 	 * @return จำนวนข้อมูลที่นับได้โดยจำแนกออกเป็นกลุ่มๆ (ผลการนับ: key = null)
 	 * @throws IllegalArgumentException
-	 *             คำสั่ง <code>criteria</code> หรือ <code>params</code>
-	 *             ไม่ถูกต้อง
+	 *             คำสั่ง <code>fields</code>, <code>criteria</code> หรือ
+	 *             <code>params</code> ไม่ถูกต้อง
 	 * @throws UnsupportedOperationException
 	 *             ไม่สามารถเชื่อมต่อฐานข้อมูลได้
 	 * @see Factory#jpql(Function, Class, CharSequence, Object...)
@@ -3687,14 +3699,13 @@ public class Model<E> {
 	 */
 	public List<Map<String, Object>> counts(
 			String fields, CharSequence criteria, Object... params)
-			throws IllegalArgumentException,
-			UnsupportedOperationException {
+			throws IllegalArgumentException, UnsupportedOperationException {
 		Aggregate selector = agg(fields).with(null, "COUNT(" + as + ")");
 		return factory.finds(this, selector, criteria, params);
 	}
 
 	/**
-	 * นับจำนวนในฐานข้อมูลตามเงื่อนไขที่ระบุ
+	 * นับจำนวนข้อมูลในฐานข้อมูลตามเงื่อนไขที่ระบุ
 	 * โดยแบ่งจำนวนข้อมูลที่นับได้ออกเป็นกลุ่มๆ
 	 *
 	 * @param fields
@@ -3705,8 +3716,8 @@ public class Model<E> {
 	 *            Parameter อื่นๆ นอกเหนือจาก Parameter ใน <code>criteria</code>
 	 * @return จำนวนข้อมูลที่นับได้
 	 * @throws IllegalArgumentException
-	 *             คำสั่ง <code>criteria</code> หรือ <code>params</code>
-	 *             ไม่ถูกต้อง
+	 *             คำสั่ง <code>fields</code>, <code>criteria</code> หรือ
+	 *             <code>params</code> ไม่ถูกต้อง
 	 * @throws UnsupportedOperationException
 	 *             ไม่สามารถเชื่อมต่อฐานข้อมูลได้
 	 * @see #counts(String, CharSequence, Object...)
@@ -3722,7 +3733,7 @@ public class Model<E> {
 	}
 
 	/**
-	 * นับจำนวนในฐานข้อมูลที่มีค่า ณ Field ที่กำหนด ตรงกับค่าที่ระบบุ
+	 * นับจำนวนข้อมูลในฐานข้อมูลที่มีค่า ณ Field ที่กำหนด ตรงกับค่าที่ระบบุ
 	 * โดยแบ่งจำนวนข้อมูลที่นับได้ออกเป็นกลุ่มๆ
 	 *
 	 * @param fields
@@ -3738,8 +3749,8 @@ public class Model<E> {
 	 * @throws NullPointerException
 	 *             <code>field</code> เป็น null หรือ ""
 	 * @throws IllegalArgumentException
-	 *             คำสั่ง <code>criteria</code> หรือ <code>params</code>
-	 *             ไม่ถูกต้อง
+	 *             คำสั่ง <code>fields</code>, <code>criteria</code> หรือ
+	 *             <code>params</code> ไม่ถูกต้อง
 	 * @throws UnsupportedOperationException
 	 *             ไม่สามารถเชื่อมต่อฐานข้อมูลได้
 	 * @see #counts(String, Model.Factory.Criteria, Object...)
@@ -3751,6 +3762,25 @@ public class Model<E> {
 			IllegalArgumentException,
 			UnsupportedOperationException {
 		return counts(fields, new Logic(field, value), params);
+	}
+
+	/**
+	 * นับจำนวนข้อมูลทั้งหมดในฐานข้อมูล โดยแบ่งจำนวนข้อมูลที่นับได้ออกเป็นกลุ่มๆ
+	 *
+	 * @param fields
+	 *            Field สำหรับแบ่งกลุ่มการนับข้อมูล
+	 * @return จำนวนข้อมูลที่นับได้โดยจำแนกออกเป็นกลุ่มๆ (ผลการนับ: key = null)
+	 * @throws IllegalArgumentException
+	 *             คำสั่ง <code>fields</code> ไม่ถูกต้อง
+	 * @throws UnsupportedOperationException
+	 *             ไม่สามารถเชื่อมต่อฐานข้อมูลได้
+	 * @see Factory#jpql(Function, Class, CharSequence, Object...)
+	 * @see Factory#build(Model, StringBuilder, Object...)
+	 * @see TypedQuery#getResultList()
+	 */
+	public List<Map<String, Object>> counts(String fields)
+			throws IllegalArgumentException, UnsupportedOperationException {
+		return counts(fields, (CharSequence) null);
 	}
 
 	/**
